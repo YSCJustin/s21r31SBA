@@ -13,9 +13,12 @@ body {
 
 }
 .sudoku_cell{
+    font-size: 35px;
+    display:flex;
+    justify-content: center;
+    align-items: center;
     aspect-ratio: 1/1;
-    margin:0.3px;
-    border: 1px solid black;
+    font-weight:normal;
+    border: 0.8px solid black;
     background-color: aliceblue;
-    
 }
