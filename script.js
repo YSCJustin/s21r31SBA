@@ -11,6 +11,7 @@ document.addEventListener("DOMContentLoaded", function() {
         [0,0,0,0,1,0,0,0,0],
         [0,0,0,0,0,0,0,0,0]
     ]
+    let locked_grid = sudoku_grid;
     let element_grid = [
         [],[],[],[],[],[],[],[],[]
     ]
@@ -32,7 +33,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 cell.style.borderLeft = '2px solid black'
             }
             
-            if(sudoku_grid[i][j] != 0){
+            if(locked_grid[i][j] != 0){
                 cell.textContent=sudoku_grid[i][j];
                 cell.style.backgroundColor='#d3def2'
             }
@@ -40,7 +41,6 @@ document.addEventListener("DOMContentLoaded", function() {
             container.appendChild(cell);
         }
     } 
-    let locked_grid = sudoku_grid;
 
     let cells = document.getElementsByClassName("sudoku_cell");
     let active_cell = null;
