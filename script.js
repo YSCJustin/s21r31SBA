@@ -290,10 +290,9 @@ document.addEventListener("DOMContentLoaded", function() {
             if(locked_grid[active_cell.id[4]][active_cell.id[5]] === 0){
                 active_cell.textContent = "";
             }
+            unfocuscolor(active_cell);
             active_cell = null;
-        }
-        //handling arrow keys
-        if(event.key.includes("Arrow")){
+        } else if(event.key.includes("Arrow")){
             if(event.key.includes("Up")){
                 if(active_cell.id[4]-1 >= 0){
                     unfocus(active_cell);
