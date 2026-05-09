@@ -1,16 +1,102 @@
-document.addEventListener("DOMContentLoaded", function() {
-    const container = document.getElementById("sudoku_container");
+
+function valid(grid,r,c,num){
+    for(let i = 0; i < 9; i++){
+        if(grid[i][c] === num){
+            return false;
+        }
+    }
+    for(let j = 0; j < 9; j++){
+        if(grid[r][j] === num){
+            return false;
+        }
+    }
+    for(let i = Math.floor(r/3)*3; i < Math.floor(r/3)*3+3; i++){
+        for(let j = Math.floor(c/3)*3; j < Math.floor(c/3)*3+3; j++){
+            if(grid[i][j] === num){
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+function find_empty(grid){
+    for(let i = 0; i < 9; i++){
+        for(let j = 0; j < 9; j++){
+            if(grid[i][j]===0){
+                return [i,j];
+            }
+        }
+    }
+    return null;
+}
+
+function shuffle(){
+    let nums=[]; for(let i = 1; i <= 9; i++) nums.push(i);
+    for(let i = nums.length-1; i > 0; i--){
+        const j = Math.floor(Math.random()*(i+1));
+        [nums[i],nums[j]]=[nums[j],nums[i]]
+    }
+    return nums;
+}
+
+
+function solve(grid){
+    const empty = find_empty(grid);
+
+    if(!empty) return true;
+
+    const [r,c] = empty;
+    const nums = shuffle();
+    for(const num of nums){
+        if(!valid(grid,r,c,num)) continue;
+        grid[r][c] = num;
+        if(solve(grid)){
+            return true;
+        }
+
+         grid[r][c]=0;
+    }
+    return false;
+
+}
+
+function generate_grid(difficulty){
     let sudoku_grid = [
         [0,0,0,0,0,0,0,0,0],
         [0,0,0,0,0,0,0,0,0],
         [0,0,0,0,0,0,0,0,0],
         [0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,3,0,5,6,7],
         [0,0,0,0,0,0,0,0,0],
         [0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,1,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0],
         [0,0,0,0,0,0,0,0,0]
-    ]
+    ];
+    solve(sudoku_grid)
+    return sudoku_grid;
+}
+
+
+// Handling the grid
+
+
+document.addEventListener("DOMContentLoaded", function() {
+    const container = document.getElementById("sudoku_container");
+    // let sudoku_grid = [
+    //     [0,0,0,0,0,0,0,0,0],
+    //     [0,0,0,0,0,0,0,0,0],
+    //     [0,0,0,0,0,0,0,0,0],
+    //     [0,0,0,0,0,0,0,0,0],
+    //     [0,0,0,0,0,0,0,0,0],
+    //     [0,0,0,0,0,0,0,0,0],
+    //     [0,0,0,0,0,0,0,0,0],
+    //     [0,0,0,0,0,0,0,0,0],
+    //     [0,0,0,0,0,0,0,0,0]
+    // ]
+    let sudoku_grid = generate_grid();
+    sudoku_grid[6][6]=sudoku_grid[6][7]=sudoku_grid[6][8]=sudoku_grid[7][6]=sudoku_grid[7][7]=sudoku_grid[7][8]=sudoku_grid[8][6]=sudoku_grid[8][7]=sudoku_grid[8][8]=0
+    let play_grid = sudoku_grid;
     let locked_grid = sudoku_grid;
     let element_grid = [
         [],[],[],[],[],[],[],[],[]
@@ -51,7 +137,7 @@ document.addEventListener("DOMContentLoaded", function() {
     function focuscolor(target,scenario){
         if(scenario === 1){ // number same
             if(locked(target.id)){
-                target.style.backgroundColor = '#e7ffff'
+                target.style.backgroundColor = '#aafafa'
             } else {
                 target.style.backgroundColor = '#799bde';
             }
@@ -102,7 +188,7 @@ document.addEventListener("DOMContentLoaded", function() {
     function unfocus(cell){
         for(let i = 0; i < 9; i++){
             for(let j = 0; j < 9; j++){
-                if(element_grid[i][j].textContent == cell.textContent && cell.textContent != ''){
+                if(cell.textContent !== null && element_grid[i][j].textContent == cell.textContent){
                     unfocuscolor(element_grid[i][j]);
                 } else if(i >= Math.floor(cell.id[4]/3)*3 && i < Math.floor(cell.id[4]/3)*3+3 && j >= Math.floor(cell.id[5]/3)*3 && j < Math.floor(cell.id[5]/3)*3+3){
                     unfocuscolor(element_grid[i][j]);
@@ -133,12 +219,20 @@ document.addEventListener("DOMContentLoaded", function() {
         if(locked_grid[+active_cell.id[4]][+active_cell.id[5]] === 0){
             if(event.key >= "1" && event.key <= "9"){
                 if(active_cell.textContent !== ''){
+                    //remove colour from previous same number cells
                     for(let i = 0; i < 9; i++){
                         for(let j = 0; j < 9; j++){
                             if(i == active_cell.id[4] && j == active_cell.id[5]) continue;
-                            if(element_grid[i][j].textContent == active_cell.textContent && active_cell.textContent != ''){
-                               unfocuscolor(element_grid[i][j],1);
-                        }
+                            if(element_grid[i][j].textContent == active_cell.textContent && active_cell.textContent != ''){ 
+                                unfocuscolor(element_grid[i][j]);
+                                if(i == active_cell.id[4] || j == active_cell.id[5]){
+                                    focuscolor(element_grid[i][j]);
+                                }
+                            }
+                            if((i >= Math.floor(active_cell.id[4]/3)*3 && i < Math.floor(active_cell.id[4]/3)*3+3 && j >= Math.floor(active_cell.id[5]/3)*3 && j < Math.floor(active_cell.id[5]/3)*3+3)){
+                                focuscolor(element_grid[i][j]);
+                            }
+                            
                     }
                     }
                 }
@@ -146,16 +240,47 @@ document.addEventListener("DOMContentLoaded", function() {
                 for(let i = 0; i < 9; i++){
                     for(let j = 0; j < 9; j++){
                         if(i == active_cell.id[4] && j == active_cell.id[5]) continue;
-                        if(element_grid[i][j].textContent == active_cell.textContent && active_cell.textContent != '' && !(i >= Math.floor(active_cell.id[4]/3)*3 && i < Math.floor(active_cell.id[4]/3)*3+3 && j >= Math.floor(active_cell.id[5]/3)*3 && j < Math.floor(active_cell.id[5]/3)*3+3)){
+                        if(element_grid[i][j].textContent == active_cell.textContent && active_cell.textContent != ''){
                             focuscolor(element_grid[i][j],1);
                     }
                   }
                 }
                 // focus(active_cell);
-            } else if(event.key === " " || event.key === "Delete" || event.key === "Backspace"){
-                unfocus(active_cell);
+            } 
+        }
+        if(event.key === " " || event.key === "Delete" || event.key === "Backspace"){
+            unfocus(active_cell);
+            if(locked_grid[active_cell.id[4]][active_cell.id[5]] === 0){
                 active_cell.textContent = "";
                 active_cell = null;
+            }
+        }
+        //handling arrow keys
+        if(event.key.includes("Arrow")){
+            if(event.key.includes("Up")){
+                if(active_cell.id[4]-1 >= 0){
+                    unfocus(active_cell);
+                    active_cell = element_grid[active_cell.id[4]-1][active_cell.id[5]];
+                    focus(active_cell);
+                }
+            } else if(event.key.includes("Down")){
+                if((+active_cell.id[4])+1 < 9){
+                    unfocus(active_cell);
+                    active_cell = element_grid[+active_cell.id[4]+1][active_cell.id[5]];
+                    focus(active_cell);
+                }
+            } else if(event.key.includes("Left")){
+                if(active_cell.id[5]-1 >= 0){
+                    unfocus(active_cell);
+                    active_cell = element_grid[active_cell.id[4]][active_cell.id[5]-1];
+                    focus(active_cell);
+                }
+            } else if(event.key.includes("Right")){
+                if((+active_cell.id[5])+1 < 9){
+                    unfocus(active_cell);
+                    active_cell = element_grid[active_cell.id[4]][+active_cell.id[5]+1];
+                    focus(active_cell);
+                }
             }
         }
        
