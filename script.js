@@ -77,11 +77,20 @@ function generate_grid(difficulty){
     return grid;
 }
 
+// Game statistics
+
+
+
+
 
 // Handling the grid
 
 
 document.addEventListener("DOMContentLoaded", function() {
+    const fail_count = document.getElementById("failcount");
+    let fails = 0,score = 0;
+
+
     const container = document.getElementById("sudoku_container");
     // let sudoku_grid = [
     //     [0,0,0,0,0,0,0,0,0],
@@ -237,7 +246,8 @@ document.addEventListener("DOMContentLoaded", function() {
    document.addEventListener("keydown", (event) => {
         if(!active_cell) return;
         if(locked_grid[+active_cell.id[4]][+active_cell.id[5]] === 0){
-            if(event.key >= "1" && event.key <= "9"){
+            if(event.key >= "1" && event.key <= "9" && active_cell.textContent !== event.key){
+
                 if(active_cell.textContent !== ''){
                     //remove colour from previous same number cells
                     for(let i = 0; i < 9; i++){
@@ -257,6 +267,12 @@ document.addEventListener("DOMContentLoaded", function() {
                     }
                 }
                 active_cell.textContent = event.key;
+                if(check_wrong(active_cell)) {
+                    fails++;
+                    fail_count.textContent=fails;
+                }
+
+
                 for(let i = 0; i < 9; i++){
                     for(let j = 0; j < 9; j++){
                         if(i == active_cell.id[4] && j == active_cell.id[5]) continue;
@@ -273,8 +289,8 @@ document.addEventListener("DOMContentLoaded", function() {
             unfocus(active_cell);
             if(locked_grid[active_cell.id[4]][active_cell.id[5]] === 0){
                 active_cell.textContent = "";
-                active_cell = null;
             }
+            active_cell = null;
         }
         //handling arrow keys
         if(event.key.includes("Arrow")){
