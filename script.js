@@ -62,7 +62,7 @@ function solve(grid){
 }
 
 function generate_grid(difficulty){
-    let sudoku_grid = [
+    let grid = [
         [0,0,0,0,0,0,0,0,0],
         [0,0,0,0,0,0,0,0,0],
         [0,0,0,0,0,0,0,0,0],
@@ -73,8 +73,8 @@ function generate_grid(difficulty){
         [0,0,0,0,0,0,0,0,0],
         [0,0,0,0,0,0,0,0,0]
     ];
-    solve(sudoku_grid)
-    return sudoku_grid;
+    solve(grid)
+    return grid;
 }
 
 
@@ -94,10 +94,10 @@ document.addEventListener("DOMContentLoaded", function() {
     //     [0,0,0,0,0,0,0,0,0],
     //     [0,0,0,0,0,0,0,0,0]
     // ]
-    let sudoku_grid = generate_grid();
-    sudoku_grid[6][6]=sudoku_grid[6][7]=sudoku_grid[6][8]=sudoku_grid[7][6]=sudoku_grid[7][7]=sudoku_grid[7][8]=sudoku_grid[8][6]=sudoku_grid[8][7]=sudoku_grid[8][8]=0
-    let play_grid = sudoku_grid;
-    let locked_grid = sudoku_grid;
+    const sudoku_grid = generate_grid();
+    let locked_grid = structuredClone(sudoku_grid);
+    locked_grid[6][6] = locked_grid[6][7] = locked_grid[6][8] = locked_grid[7][6]=locked_grid[7][7]=locked_grid[7][8]=locked_grid[8][6]=locked_grid[8][7]=locked_grid[8][8]= 0
+    let play_grid = structuredClone(sudoku_grid);
     let element_grid = [
         [],[],[],[],[],[],[],[],[]
     ]
@@ -134,37 +134,57 @@ document.addEventListener("DOMContentLoaded", function() {
     function locked(id){
         return (locked_grid[+id[4]][+id[5]] > 0);
     }
+    function check_wrong(target){
+        return (target.textContent != sudoku_grid[target.id[4]][target.id[5]] && target.textContent != '')
+    }
+
     function focuscolor(target,scenario){
+
         if(scenario === 1){ // number same
-            if(locked(target.id)){
+             if(locked(target.id)){
                 target.style.backgroundColor = '#aafafa'
             } else {
-                target.style.backgroundColor = '#799bde';
+                if(check_wrong(target)){
+                    target.style.backgroundColor = '#f28b83'
+                    target.style.color = '#ffffff';
+                } else target.style.backgroundColor = '#799bde';
             }
         }
         else if(scenario === 2){ // the target cell itself
              if(locked(target.id)){
                 target.style.backgroundColor = '#85d1fa'
             } else {
-                target.style.backgroundColor = '#6a8ce2';
+                if(check_wrong(target)){
+                    target.style.backgroundColor = '#f76a60'
+                } else  target.style.backgroundColor = '#6a8ce2';
                 target.style.color = '#ffffff';
             }
         } else {
             if(locked(target.id)){
                 target.style.backgroundColor = '#bfe3f6'
             } else {
-                target.style.backgroundColor = '#9fb5ec';
+                if(check_wrong(target)){
+                    target.style.backgroundColor = '#f28b83'
+                    target.style.color = '#ffffff';
+                } else  target.style.backgroundColor = '#9fb5ec';
             }
         }
         target.style.fontWeight = 'bold';
         
     }
     function unfocuscolor(target){
+        // if(target.textContent == sudoku_grid[target.id[4]][target.id[5]]) return;
         if(!locked(target.id)){
-            target.style.backgroundColor = 'aliceblue';
-            target.style.color='black'
+            if(check_wrong(target)){
+                target.style.backgroundColor = '#f28b83'
+                target.style.color = '#ffffff';
+            } else  {
+                target.style.backgroundColor = 'aliceblue';
+                target.style.color='black'
+            }
         } else {
-            target.style.backgroundColor = '#d6e4f0';
+
+ target.style.backgroundColor = '#d6e4f0';
         }
         target.style.fontWeight = 'normal';
     }
@@ -245,7 +265,8 @@ document.addEventListener("DOMContentLoaded", function() {
                     }
                   }
                 }
-                // focus(active_cell);
+
+                focuscolor(active_cell,2);
             } 
         }
         if(event.key === " " || event.key === "Delete" || event.key === "Backspace"){
