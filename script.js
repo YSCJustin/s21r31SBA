@@ -292,6 +292,9 @@ document.addEventListener("DOMContentLoaded", function() {
             }
             unfocuscolor(active_cell);
             active_cell = null;
+        } else if(event.key === "Escape"){
+            unfocus(active_cell);
+            active_cell = null;
         } else if(event.key.includes("Arrow")){
             if(event.key.includes("Up")){
                 if(active_cell.id[4]-1 >= 0){
