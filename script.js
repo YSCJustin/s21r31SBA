@@ -179,6 +179,8 @@ function solved(sudoku_grid,play_grid){
 }
 
 
+
+
 document.addEventListener("DOMContentLoaded", function() {
     const fail_count = document.getElementById("failcount");
     let fails = 0,score = 0;
@@ -197,8 +199,8 @@ document.addEventListener("DOMContentLoaded", function() {
     //     [0,0,0,0,0,0,0,0,0]
     // ]
     const sudoku_grid = generate_grid_solved();
-    let locked_grid = generate_grid(sudoku_grid,45);
-    //locked_grid[6][6] = locked_grid[6][7] = locked_grid[6][8] = locked_grid[7][6]=locked_grid[7][7]=locked_grid[7][8]=locked_grid[8][6]=locked_grid[8][7]=locked_grid[8][8]= 0
+    let locked_grid = generate_grid(sudoku_grid,50);
+
     let play_grid = structuredClone(locked_grid);
     let element_grid = [
         [],[],[],[],[],[],[],[],[]
@@ -376,7 +378,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 }
 
                 focuscolor(active_cell,2);
-                if(solved(sudoku_grid,play_grid)) alert(`You solved this puzzle with ${fails} fails!`)
+                if(solved(sudoku_grid,play_grid)) {setTimeout(() => {alert(`You solved this puzzle with ${fails} fails!`)},100)}
             } 
         }
         if(event.key === " " || event.key === "Delete" || event.key === "Backspace"){
