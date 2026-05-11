@@ -244,7 +244,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         if(scenario === 1){ // number same
              if(locked(target.id)){
-                target.style.backgroundColor = '#aafafa'
+                target.style.backgroundColor = '#85f7f7'
             } else {
                 if(check_wrong(target)){
                     target.style.backgroundColor = '#f28b83'
@@ -258,7 +258,7 @@ document.addEventListener("DOMContentLoaded", function() {
             } else {
                 if(check_wrong(target)){
                     target.style.backgroundColor = '#f76a60'
-                } else  target.style.backgroundColor = '#6a8ce2';
+                } else  target.style.backgroundColor = '#597fe1';
                 target.style.color = '#ffffff';
             }
         } else {
@@ -376,6 +376,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 }
 
                 focuscolor(active_cell,2);
+                if(solved(sudoku_grid,play_grid)) alert(`You solved this puzzle with ${fails} fails!`)
             } 
         }
         if(event.key === " " || event.key === "Delete" || event.key === "Backspace"){
