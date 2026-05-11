@@ -20,15 +20,43 @@ function valid(grid,r,c,num){
     return true;
 }
 
-function find_empty(grid){
-    for(let i = 0; i < 9; i++){
-        for(let j = 0; j < 9; j++){
-            if(grid[i][j]===0){
-                return [i,j];
-            }
+function fetch_candidiates(grid,r,c){
+    const candidiates = [];
+    for(let num=1; num <= 9; num++){
+        if(valid(grid,r,c,num)){
+            candidiates.push(num);
         }
     }
-    return null;
+    return candidiates;
+}
+
+function find_empty(grid,scenario){
+    if(scenario === 1){
+        for(let i = 0; i < 9; i++){
+            for(let j = 0; j < 9; j++){
+                if(grid[i][j]===0){
+                    return [i,j];
+                }
+            }
+        }
+        return null;  
+    } else {
+        let min = 10;
+        let best = null;
+        for(let i = 0; i < 9; i++){
+            for(let j = 0; j < 9; j++){
+                if(grid[i][j]===0){
+                    const candidiates = fetch_candidiates(grid,i,j);
+                    if(candidiates.length < min) {
+                        min = candidiates.length;
+                        best = [i,j];
+                        if(min === 0) return null;
+                    }
+                }
+            }
+        }
+        return best;
+    }
 }
 
 function shuffle(){
@@ -40,9 +68,23 @@ function shuffle(){
     return nums;
 }
 
+function random_cells(){
+    let nums = [];
+    for(let i = 0; i < 9; i++){
+        for(let j = 0; j < 9; j++){
+            nums.push({i,j});
+        }
+    }
+    for(let i = nums.length-1; i > 0; i--){
+        const j = Math.floor(Math.random()*(i+1));
+        [nums[i],nums[j]]=[nums[j],nums[i]]
+    }
+    return nums;
+}
+
 
 function solve(grid){
-    const empty = find_empty(grid);
+    const empty = find_empty(grid,1);
 
     if(!empty) return true;
 
@@ -61,7 +103,29 @@ function solve(grid){
 
 }
 
-function generate_grid(difficulty){
+function unique(sudoku_grid){
+    let grid=structuredClone(sudoku_grid);
+    let cnt = 0;
+    function backtrack(){
+        if(cnt>=2) return;
+        const empty = find_empty(grid,2);
+        if(!empty) {
+            cnt++;
+            return;
+        }
+        const [r,c] = empty;
+        for(let num = 1; num<= 9 && cnt<2; num++){
+            if(!valid(grid,r,c,num)) continue;
+            grid[r][c] = num;
+            backtrack();
+            grid[r][c]=0;
+        }
+    }
+    backtrack();
+    return (cnt<2);
+}
+
+function generate_grid_solved(){
     let grid = [
         [0,0,0,0,0,0,0,0,0],
         [0,0,0,0,0,0,0,0,0],
@@ -77,6 +141,20 @@ function generate_grid(difficulty){
     return grid;
 }
 
+function generate_grid(sudoku_grid,difficulty){
+    let grid = structuredClone(sudoku_grid);
+    let random = random_cells();
+    let cnt = 0;
+    for(let i = 0; cnt<difficulty&&i<81; i++){
+        let temp = grid[random[i].i][random[i].j]
+        grid[random[i].i][random[i].j] = 0;
+        if(unique(grid)){
+            cnt++
+        } else grid[random[i].i][random[i].j]=temp;
+    }
+    return grid;
+}
+
 // Game statistics
 
 
@@ -84,6 +162,21 @@ function generate_grid(difficulty){
 
 
 // Handling the grid
+
+
+function solved(sudoku_grid,play_grid){
+    let solved = true;
+    for(let i = 0; i < 9; i++){
+        for(let j = 0; j < 9; j++){
+            if(sudoku_grid[i][j] !== play_grid[i][j]){
+                solved=false;
+                break;
+            }
+        }
+        if(!solved) break;
+    }
+    return solved;
+}
 
 
 document.addEventListener("DOMContentLoaded", function() {
@@ -103,10 +196,10 @@ document.addEventListener("DOMContentLoaded", function() {
     //     [0,0,0,0,0,0,0,0,0],
     //     [0,0,0,0,0,0,0,0,0]
     // ]
-    const sudoku_grid = generate_grid();
-    let locked_grid = structuredClone(sudoku_grid);
-    locked_grid[6][6] = locked_grid[6][7] = locked_grid[6][8] = locked_grid[7][6]=locked_grid[7][7]=locked_grid[7][8]=locked_grid[8][6]=locked_grid[8][7]=locked_grid[8][8]= 0
-    let play_grid = structuredClone(sudoku_grid);
+    const sudoku_grid = generate_grid_solved();
+    let locked_grid = generate_grid(sudoku_grid,45);
+    //locked_grid[6][6] = locked_grid[6][7] = locked_grid[6][8] = locked_grid[7][6]=locked_grid[7][7]=locked_grid[7][8]=locked_grid[8][6]=locked_grid[8][7]=locked_grid[8][8]= 0
+    let play_grid = structuredClone(locked_grid);
     let element_grid = [
         [],[],[],[],[],[],[],[],[]
     ]
@@ -116,16 +209,16 @@ document.addEventListener("DOMContentLoaded", function() {
             cell.classList.add("sudoku_cell");
             cell.id=`cell${i}${j}`
             if(j%3==2){
-                cell.style.borderRight = '2px solid black';
+                cell.style.borderRight = '3.5px solid black';
             }
             if(i%3==2){
-                cell.style.borderBottom = '2px solid black';
+                cell.style.borderBottom = '3.5px solid black';
             }
             if(i==0){
-                cell.style.borderTop = '2px solid black'
+                cell.style.borderTop = '3.5px solid black'
             }
             if(j == 0){
-                cell.style.borderLeft = '2px solid black'
+                cell.style.borderLeft = '3.5px solid black'
             }
             
             if(locked_grid[i][j] != 0){
@@ -193,7 +286,7 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         } else {
 
- target.style.backgroundColor = '#d6e4f0';
+            target.style.backgroundColor = '#d6e4f0';
         }
         target.style.fontWeight = 'normal';
     }
@@ -247,7 +340,7 @@ document.addEventListener("DOMContentLoaded", function() {
         if(!active_cell) return;
         if(locked_grid[+active_cell.id[4]][+active_cell.id[5]] === 0){
             if(event.key >= "1" && event.key <= "9" && active_cell.textContent !== event.key){
-
+                play_grid[active_cell.id[4]][active_cell.id[5]] = (+event.key);
                 if(active_cell.textContent !== ''){
                     //remove colour from previous same number cells
                     for(let i = 0; i < 9; i++){
@@ -286,12 +379,12 @@ document.addEventListener("DOMContentLoaded", function() {
             } 
         }
         if(event.key === " " || event.key === "Delete" || event.key === "Backspace"){
-            unfocus(active_cell);
             if(locked_grid[active_cell.id[4]][active_cell.id[5]] === 0){
+                unfocus(active_cell);
                 active_cell.textContent = "";
+                play_grid[active_cell.id[4]][active_cell.id[5]] = 0;
+                focus(active_cell);
             }
-            unfocuscolor(active_cell);
-            active_cell = null;
         } else if(event.key === "Escape"){
             unfocus(active_cell);
             active_cell = null;
