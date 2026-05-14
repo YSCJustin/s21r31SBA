@@ -183,6 +183,19 @@ function solved(sudoku_grid,play_grid){
 
 document.addEventListener("DOMContentLoaded", function() {
     const fail_count = document.getElementById("failcount");
+    const timer = document.getElementById("timer");
+    let game_end = false;
+    let sec = 0;
+    
+    let min = 0;
+    let timerf=setInterval(() => {
+        sec++;
+        if(sec === 60) {
+            sec = 0;
+            min++;
+        }
+        timer.textContent=`${min<10?`0${min}`:min}:${sec<10?`0${sec}`:sec}`;
+    },1000)
     let fails = 0,score = 0;
 
 
@@ -199,7 +212,7 @@ document.addEventListener("DOMContentLoaded", function() {
     //     [0,0,0,0,0,0,0,0,0]
     // ]
     const sudoku_grid = generate_grid_solved();
-    let locked_grid = generate_grid(sudoku_grid,50);
+    let locked_grid = generate_grid(sudoku_grid,60);
 
     let play_grid = structuredClone(locked_grid);
     let element_grid = [
@@ -260,7 +273,7 @@ document.addEventListener("DOMContentLoaded", function() {
             } else {
                 if(check_wrong(target)){
                     target.style.backgroundColor = '#f76a60'
-                } else  target.style.backgroundColor = '#597fe1';
+                } else  target.style.backgroundColor = '#446dd5';
                 target.style.color = '#ffffff';
             }
         } else {
@@ -341,7 +354,7 @@ document.addEventListener("DOMContentLoaded", function() {
    document.addEventListener("keydown", (event) => {
         if(!active_cell) return;
         if(locked_grid[+active_cell.id[4]][+active_cell.id[5]] === 0){
-            if(event.key >= "1" && event.key <= "9" && active_cell.textContent !== event.key){
+            if(event.key >= "1" && event.key <= "9" && active_cell.textContent !== event.key && !game_end){
                 play_grid[active_cell.id[4]][active_cell.id[5]] = (+event.key);
                 if(active_cell.textContent !== ''){
                     //remove colour from previous same number cells
@@ -378,10 +391,17 @@ document.addEventListener("DOMContentLoaded", function() {
                 }
 
                 focuscolor(active_cell,2);
-                if(solved(sudoku_grid,play_grid)) {setTimeout(() => {alert(`You solved this puzzle with ${fails} fails!`)},100)}
+                if(solved(sudoku_grid,play_grid)) {
+                    setTimeout(() => {
+                        alert(`You solved this puzzle with ${fails} fails using ${min<10?`0${min}`:min}:${sec<10?`0${sec}`:sec}!`)
+                    },100);
+                    timer.textContent=`${min<10?`0${min}`:min}:${sec<10?`0${sec}`:sec} (ended)`
+                    clearInterval(timerf);
+                    game_end=true;
+                }
             } 
         }
-        if(event.key === " " || event.key === "Delete" || event.key === "Backspace"){
+        if((event.key === " " || event.key === "Delete" || event.key === "Backspace") && !game_end){
             if(locked_grid[active_cell.id[4]][active_cell.id[5]] === 0){
                 unfocus(active_cell);
                 active_cell.textContent = "";
@@ -420,6 +440,9 @@ document.addEventListener("DOMContentLoaded", function() {
         }
        
    })
+
+   
+
 
 });
 
