@@ -60,6 +60,7 @@ function find_empty(grid,scenario){
 }
 
 function shuffle(){
+
     let nums=[]; for(let i = 1; i <= 9; i++) nums.push(i);
     for(let i = nums.length-1; i > 0; i--){
         const j = Math.floor(Math.random()*(i+1));
@@ -158,9 +159,6 @@ function generate_grid(sudoku_grid,difficulty){
 // Game statistics
 
 
-
-
-
 // Handling the grid
 
 
@@ -184,6 +182,7 @@ function solved(sudoku_grid,play_grid){
 document.addEventListener("DOMContentLoaded", function() {
     const fail_count = document.getElementById("failcount");
     const timer = document.getElementById("timer");
+
     let game_end = false;
     let sec = 0;
     
@@ -211,9 +210,19 @@ document.addEventListener("DOMContentLoaded", function() {
     //     [0,0,0,0,0,0,0,0,0],
     //     [0,0,0,0,0,0,0,0,0]
     // ]
-    const sudoku_grid = generate_grid_solved();
-    let locked_grid = generate_grid(sudoku_grid,60);
-
+    let sudoku_grid = generate_grid_solved();
+    let locked_grid
+    if(container.classList[0] === "easy"){
+        locked_grid= generate_grid(sudoku_grid,Math.floor(Math.random()*(45-32+1))+32);
+    } else if(container.classList[0] === "medium"){
+        locked_grid= generate_grid(sudoku_grid,Math.floor(Math.random()*(55-46+1))+46);
+    } else if(container.classList[0] === "hard"){
+        locked_grid= generate_grid(sudoku_grid,Math.floor(Math.random()*(81-56+1))+56);
+    } else if(container.classList[0] === "random"){
+        locked_grid= generate_grid(sudoku_grid,Math.floor(Math.random()*(81-32+1))+32);
+    } else if(container.classList[0] === "max"){
+        locked_grid= generate_grid(sudoku_grid,81);
+    }  
     let play_grid = structuredClone(locked_grid);
     let element_grid = [
         [],[],[],[],[],[],[],[],[]
