@@ -156,7 +156,22 @@ function generate_grid(sudoku_grid,difficulty){
     return grid;
 }
 
-// Game statistics
+// game features
+
+function get_hint(play_grid,locked_grid){
+    let best = null, bcount = Infinity;
+    for(let i = 0; i < 9; i++){
+        for(let j = 0; j < 9; j++){
+            if(play_grid[i][j] !== 0 || locked_grid[i][j] !== 0) continue;
+            const candidates = fetch_candidiates(play_grid,i,j);
+            if(candidates.length > 0 && candidates.length < bcount){
+                bcount = candidates.length;
+                best = [i,j];
+            }
+        }
+    }
+    return [best, bcount];
+}
 
 
 // Handling the grid
@@ -182,7 +197,8 @@ function solved(sudoku_grid,play_grid){
 document.addEventListener("DOMContentLoaded", function() {
     const fail_count = document.getElementById("failcount");
     const timer = document.getElementById("timer");
-
+    const hintbutton = document.getElementById("hintbutton");
+    const hint_count = document.getElementById("hintcount")
     let game_end = false;
     let sec = 0;
     
@@ -195,7 +211,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }
         timer.textContent=`${min<10?`0${min}`:min}:${sec<10?`0${sec}`:sec}`;
     },1000)
-    let fails = 0,score = 0;
+    let fails = 0,score = 0,hints=0;
 
 
     const container = document.getElementById("sudoku_container");
@@ -227,6 +243,7 @@ document.addEventListener("DOMContentLoaded", function() {
     let element_grid = [
         [],[],[],[],[],[],[],[],[]
     ]
+
     for(let i = 0; i < 9; i++){
         for(let j = 0; j < 9; j++){
             const cell = document.createElement("div");
@@ -273,7 +290,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 if(check_wrong(target)){
                     target.style.backgroundColor = '#f28b83'
                     target.style.color = '#ffffff';
-                } else target.style.backgroundColor = '#799bde';
+                } else target.style.backgroundColor = '#85f7f7';
             }
         }
         else if(scenario === 2){ // the target cell itself
@@ -344,7 +361,7 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         }
     }
-
+    // handling event listeners
     for(let i = 0; i < cells.length; i++){
 
         cells[i].addEventListener("click", function(){
@@ -360,7 +377,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
    }
 
-   document.addEventListener("keydown", (event) => {
+    document.addEventListener("keydown", (event) => {
         if(!active_cell) return;
         if(locked_grid[+active_cell.id[4]][+active_cell.id[5]] === 0){
             if(event.key >= "1" && event.key <= "9" && active_cell.textContent !== event.key && !game_end){
@@ -401,8 +418,9 @@ document.addEventListener("DOMContentLoaded", function() {
 
                 focuscolor(active_cell,2);
                 if(solved(sudoku_grid,play_grid)) {
+                    hintbutton.disabled=true;
                     setTimeout(() => {
-                        alert(`You solved this puzzle with ${fails} fails using ${min<10?`0${min}`:min}:${sec<10?`0${sec}`:sec}!`)
+                        alert(`You solved this puzzle with ${fails} fails and ${hints} hints, using ${min<10?`0${min}`:min}:${sec<10?`0${sec}`:sec}!`)
                     },100);
                     timer.textContent=`${min<10?`0${min}`:min}:${sec<10?`0${sec}`:sec} (ended)`
                     clearInterval(timerf);
@@ -448,8 +466,41 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         }
        
-   })
+    })
 
+    hintbutton.addEventListener("click", () => {
+        const hint = get_hint(play_grid,locked_grid);
+        if(hint[0]){
+            hint_count.textContent=++hints;
+            hintbutton.disabled = true;
+            const pos = hint[0];
+            const cell = element_grid[pos[0]][pos[1]];
+            let blinks = 0;
+            let last_colour;
+            let blinking = setInterval(() => {
+
+                if(active_cell !== cell){
+                    if(blinks%2===0) {
+                        last_colour=cell.style.backgroundColor;
+                        cell.style.backgroundColor="#ed5f0d";
+                    } else cell.style.backgroundColor=last_colour;
+                } else {
+                    if(blinks%2===0) {
+                        last_colour=cell.style.backgroundColor;
+                        cell.style.backgroundColor="#ff0044";
+                    } else cell.style.backgroundColor=last_colour; 
+                }
+                
+                blinks++;
+                if(blinks===12){
+                     clearInterval(blinking);
+                     hintbutton.disabled = false;
+                     if(active_cell) focus(active_cell);
+                } // after blinking, exits and re-enable
+            },300)
+        }
+    })
+   
    
 
 
