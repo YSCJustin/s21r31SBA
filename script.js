@@ -197,37 +197,26 @@ function solved(sudoku_grid,play_grid){
 document.addEventListener("DOMContentLoaded", function() {
     const fail_count = document.getElementById("failcount");
     const timer = document.getElementById("timer");
+    const pausebutton = document.getElementById("pause");
     const hintbutton = document.getElementById("hintbutton");
-    const hint_count = document.getElementById("hintcount")
-    let game_end = false;
-    let sec = 0;
-    
-    let min = 0;
-    let timerf=setInterval(() => {
-        sec++;
-        if(sec === 60) {
-            sec = 0;
-            min++;
-        }
-        timer.textContent=`${min<10?`0${min}`:min}:${sec<10?`0${sec}`:sec}`;
-    },1000)
-    let fails = 0,score = 0,hints=0;
+    const hint_count = document.getElementById("hintcount");
 
+    let game_end = false, paused = false;
+    let ptime = 0, ms_total = 0, ms = 0, sec = 0, min = 0, fails = 0,score = 0,hints=0;
+    let hints_used = [];
+    let start_time = Date.now();
+
+    let timerf=setInterval(time,500);
+    function time(){
+        ms_total=Date.now()-start_time+ptime;
+        sec = Math.floor(ms_total/1000)%60, m = Math.floor(ms_total/60000);
+        timer.textContent=`${min<10?`0${min}`:min}:${sec<10?`0${sec}`:sec}`;
+    }
 
     const container = document.getElementById("sudoku_container");
-    // let sudoku_grid = [
-    //     [0,0,0,0,0,0,0,0,0],
-    //     [0,0,0,0,0,0,0,0,0],
-    //     [0,0,0,0,0,0,0,0,0],
-    //     [0,0,0,0,0,0,0,0,0],
-    //     [0,0,0,0,0,0,0,0,0],
-    //     [0,0,0,0,0,0,0,0,0],
-    //     [0,0,0,0,0,0,0,0,0],
-    //     [0,0,0,0,0,0,0,0,0],
-    //     [0,0,0,0,0,0,0,0,0]
-    // ]
+
     let sudoku_grid = generate_grid_solved();
-    let locked_grid
+    let locked_grid;
     if(container.classList[0] === "easy"){
         locked_grid= generate_grid(sudoku_grid,Math.floor(Math.random()*(45-32+1))+32);
     } else if(container.classList[0] === "medium"){
@@ -243,7 +232,6 @@ document.addEventListener("DOMContentLoaded", function() {
     let element_grid = [
         [],[],[],[],[],[],[],[],[]
     ]
-
     for(let i = 0; i < 9; i++){
         for(let j = 0; j < 9; j++){
             const cell = document.createElement("div");
@@ -340,7 +328,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         for(let i = 0; i < 9; i++){
             for(let j = 0; j < 9; j++){
-                if(element_grid[i][j].textContent == cell.textContent && cell.textContent != ''){
+                if(cell.textContent != '' && element_grid[i][j].textContent == cell.textContent){
                     focuscolor(element_grid[i][j],1);
                 } else if(i >= Math.floor(cell.id[4]/3)*3 && i < Math.floor(cell.id[4]/3)*3+3 && j >= Math.floor(cell.id[5]/3)*3 && j < Math.floor(cell.id[5]/3)*3+3){
                     focuscolor(element_grid[i][j]);
@@ -369,6 +357,7 @@ document.addEventListener("DOMContentLoaded", function() {
     for(let i = 0; i < cells.length; i++){
 
         cells[i].addEventListener("click", function(){
+            if(paused) return;
             let cell = cells[i];
             if(active_cell===null|| active_cell.id !== cell.id) {
 
@@ -382,7 +371,7 @@ document.addEventListener("DOMContentLoaded", function() {
    }
 
     document.addEventListener("keydown", (event) => {
-        if(!active_cell) return;
+        if(!active_cell || paused) return;
         if(locked_grid[+active_cell.id[4]][+active_cell.id[5]] === 0){
             if(event.key >= "1" && event.key <= "9" && active_cell.textContent !== event.key && !game_end){
                 play_grid[active_cell.id[4]][active_cell.id[5]] = (+event.key);
@@ -475,14 +464,21 @@ document.addEventListener("DOMContentLoaded", function() {
     hintbutton.addEventListener("click", () => {
         const hint = get_hint(play_grid,locked_grid);
         if(hint[0]){
-            hint_count.textContent=++hints;
             hintbutton.disabled = true;
             const pos = hint[0];
+            const exists = hints_used.some(position => position.every((value,i) => value === pos[i])) // checks if hint already used for this pos. prevents double count
+            if(!exists) {
+                hint_count.textContent=++hints;
+                hints_used.push(pos);
+            }
             const cell = element_grid[pos[0]][pos[1]];
             let blinks = 0;
             let last_colour;
             let blinking = setInterval(() => {
-
+                if(paused){
+                    cell.style.backgroundColor="aliceblue";
+                    return clearInterval(blinking);
+                }
                 if(active_cell !== cell){
                     if(blinks%2===0) {
                         last_colour=cell.style.backgroundColor;
@@ -499,12 +495,47 @@ document.addEventListener("DOMContentLoaded", function() {
                 if(blinks===12){
                      clearInterval(blinking);
                      hintbutton.disabled = false;
-                     if(active_cell) focus(active_cell);
+                     unfocuscolor(cell);
+                     focus(active_cell);
                 } // after blinking, exits and re-enable
             },300)
         }
     })
-   
+
+    pausebutton.addEventListener("click", () => {
+        if(!paused){
+            paused = true;
+            clearInterval(timerf);
+            timer.textContent += " (Paused)"
+            ptime=ms_total;
+            pausebutton.textContent = "Resume";
+            hintbutton.disabled = true;
+            active_cell = null;
+            for(let i = 0; i < 9; i++){
+                for(let j = 0; j < 9; j++){
+                    element_grid[i][j].textContent = '';
+                    element_grid[i][j].style.backgroundColor = "aliceblue"
+                }
+            }
+        } else {
+            paused = false;
+            start_time = Date.now();
+            timer.textContent=`${min<10?`0${min}`:min}:${sec<10?`0${sec}`:sec}`;
+            timerf = setInterval(time, 500)
+            pausebutton.textContent = "Pause";
+            hintbutton.disabled = false;
+            for(let i = 0; i < 9; i++){
+                for(let j = 0; j < 9; j++){
+                    if(play_grid[i][j] !== 0){
+                        element_grid[i][j].textContent = play_grid[i][j];
+                        if(locked(element_grid[i][j].id)){
+                            element_grid[i][j].style.backgroundColor = "#d6e4f0";
+                        }
+                    }
+                }
+            }
+        }
+    })
    
 
 
