@@ -195,13 +195,14 @@ function solved(sudoku_grid,play_grid){
 
 
 document.addEventListener("DOMContentLoaded", function() {
+    
     const fail_count = document.getElementById("failcount");
     const timer = document.getElementById("timer");
     const pausebutton = document.getElementById("pause");
     const hintbutton = document.getElementById("hintbutton");
     const hint_count = document.getElementById("hintcount");
 
-    let game_end = false, paused = false;
+    let game_end = false, paused = false, inputted = false;
     let ptime = 0, ms_total = 0, ms = 0, sec = 0, min = 0, fails = 0,score = 0,hints=0;
     let hints_used = [];
     let start_time = Date.now();
@@ -357,7 +358,9 @@ document.addEventListener("DOMContentLoaded", function() {
     for(let i = 0; i < cells.length; i++){
 
         cells[i].addEventListener("click", function(){
+            
             if(paused) return;
+            if(!inputted)inputted = true;
             let cell = cells[i];
             if(active_cell===null|| active_cell.id !== cell.id) {
 
@@ -371,6 +374,7 @@ document.addEventListener("DOMContentLoaded", function() {
    }
 
     document.addEventListener("keydown", (event) => {
+        if(!inputted)inputted = true;
         if(!active_cell || paused) return;
         if(locked_grid[+active_cell.id[4]][+active_cell.id[5]] === 0){
             if(event.key >= "1" && event.key <= "9" && active_cell.textContent !== event.key && !game_end){
@@ -411,6 +415,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
                 focuscolor(active_cell,2);
                 if(solved(sudoku_grid,play_grid)) {
+                    pausebutton.disabled=true;
                     hintbutton.disabled=true;
                     setTimeout(() => {
                         alert(`You solved this puzzle with ${fails} fails and ${hints} hints, using ${min<10?`0${min}`:min}:${sec<10?`0${sec}`:sec}!`)
@@ -462,6 +467,7 @@ document.addEventListener("DOMContentLoaded", function() {
     })
 
     hintbutton.addEventListener("click", () => {
+        if(!inputted)inputted = true;
         const hint = get_hint(play_grid,locked_grid);
         if(hint[0]){
             hintbutton.disabled = true;
@@ -503,6 +509,7 @@ document.addEventListener("DOMContentLoaded", function() {
     })
 
     pausebutton.addEventListener("click", () => {
+        if(!inputted)inputted = true;
         if(!paused){
             paused = true;
             clearInterval(timerf);
@@ -535,7 +542,15 @@ document.addEventListener("DOMContentLoaded", function() {
                 }
             }
         }
-    })
+    });
+
+
+    window.addEventListener("beforeunload", (event) => {
+        if(inputted && !game_end){
+            event.preventDefault();
+            event.returnValue = '';
+        }
+    }); // with reference to MDN
    
 
 
