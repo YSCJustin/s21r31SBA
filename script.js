@@ -1,19 +1,19 @@
 
-function valid(grid,r,c,num){
+function valid(grid,r,c,num,special){
     for(let i = 0; i < 9; i++){
         if(grid[i][c] === num){
-            return false;
+            if(!special || i !== r)return false;
         }
     }
     for(let j = 0; j < 9; j++){
         if(grid[r][j] === num){
-            return false;
+             if(!special || j !== c)return false;
         }
     }
     for(let i = Math.floor(r/3)*3; i < Math.floor(r/3)*3+3; i++){
         for(let j = Math.floor(c/3)*3; j < Math.floor(c/3)*3+3; j++){
             if(grid[i][j] === num){
-                return false;
+                 if(!special || (i !== r&& j !== c))return false;
             }
         }
     }
@@ -278,7 +278,8 @@ document.addEventListener("DOMContentLoaded", function() {
         return (locked_grid[+id[4]][+id[5]] > 0);
     }
     function check_wrong(target){
-        return (target.textContent != sudoku_grid[target.id[4]][target.id[5]] && target.textContent != '')
+        // return (target.textContent != sudoku_grid[target.id[4]][target.id[5]] && target.textContent != '')
+        return (!valid(play_grid,+target.id[4],+target.id[5],+target.textContent,true)&&target.textContent != '');
     }
 
     function focuscolor(target,scenario){
