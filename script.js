@@ -209,7 +209,7 @@ document.addEventListener("DOMContentLoaded", function() {
     let timerf=setInterval(time,500);
     function time(){
         ms_total=Date.now()-start_time+ptime;
-        sec = Math.floor(ms_total/1000)%60, m = Math.floor(ms_total/60000);
+        sec = Math.floor(ms_total/1000)%60, min = Math.floor(ms_total/60000);
         timer.textContent=`${min<10?`0${min}`:min}:${sec<10?`0${sec}`:sec}`;
     }
 
