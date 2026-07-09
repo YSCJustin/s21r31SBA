@@ -310,7 +310,10 @@ document.addEventListener("DOMContentLoaded", function() {
                 if(check_wrong(target)){
                     target.style.backgroundColor = '#f28b83'
                     target.style.color = '#ffffff';
-                } else  target.style.backgroundColor = '#9fb5ec';
+                } else {
+                     target.style.backgroundColor = '#9fb5ec';
+                     target.style.color = "black";
+                }
             }
         }
         target.style.fontWeight = 'bold';
@@ -322,7 +325,7 @@ document.addEventListener("DOMContentLoaded", function() {
             if(check_wrong(target)){
                 target.style.backgroundColor = '#f28b83'
                 target.style.color = '#ffffff';
-            } else  {
+            } else {
                 target.style.backgroundColor = 'aliceblue';
                 target.style.color='black'
             }
