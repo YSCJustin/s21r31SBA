@@ -2,12 +2,12 @@
 function valid(grid,r,c,num,special){
     for(let i = 0; i < 9; i++){
         if(grid[i][c] === num){
-            if(!special || i !== r)return false;
+            if(!special || i !== r) return false;
         }
     }
     for(let j = 0; j < 9; j++){
         if(grid[r][j] === num){
-             if(!special || j !== c)return false;
+             if(!special || j !== c) return false;
         }
     }
     for(let i = Math.floor(r/3)*3; i < Math.floor(r/3)*3+3; i++){
@@ -159,18 +159,19 @@ function generate_grid(sudoku_grid,difficulty){
 // game features
 
 function get_hint(play_grid,locked_grid){
-    let best = null, bcount = Infinity;
+    let best = null, bcount = Infinity, cand = [];
     for(let i = 0; i < 9; i++){
         for(let j = 0; j < 9; j++){
             if(play_grid[i][j] !== 0 || locked_grid[i][j] !== 0) continue;
             const candidates = fetch_candidiates(play_grid,i,j);
             if(candidates.length > 0 && candidates.length < bcount){
+                cand = candidates;
                 bcount = candidates.length;
                 best = [i,j];
             }
         }
     }
-    return [best, bcount];
+    return [best, bcount, cand];
 }
 
 
@@ -201,7 +202,11 @@ document.addEventListener("DOMContentLoaded", function() {
     const pausebutton = document.getElementById("pause");
     const hintbutton = document.getElementById("hintbutton");
     const hint_count = document.getElementById("hintcount");
-
+    const taunt = document.getElementById("taunt");
+    const param = new URLSearchParams(window.location.search);
+    const difficulty = param.get("difficulty");
+    const strict = param.get("strict")
+    const difftext = document.getElementById("diff");
     let game_end = false, paused = false, inputted = false;
     let ptime = 0, ms_total = 0, ms = 0, sec = 0, min = 0, fails = 0,score = 0,hints=0;
     let hints_used = [];
@@ -213,22 +218,69 @@ document.addEventListener("DOMContentLoaded", function() {
         sec = Math.floor(ms_total/1000)%60, min = Math.floor(ms_total/60000);
         timer.textContent=`${min<10?`0${min}`:min}:${sec<10?`0${sec}`:sec}`;
     }
-
     const container = document.getElementById("sudoku_container");
 
-    let sudoku_grid = generate_grid_solved();
+    let sudoku_grid;
     let locked_grid;
-    if(container.classList[0] === "easy"){
+    if(difficulty === "easy"){
+        difftext.textContent="Sudoku (Easy";
+        sudoku_grid = generate_grid_solved()
         locked_grid= generate_grid(sudoku_grid,Math.floor(Math.random()*(45-32+1))+32);
-    } else if(container.classList[0] === "medium"){
+    } else if(difficulty === "medium"){
+        difftext.textContent="Sudoku (Medium";
+        sudoku_grid = generate_grid_solved()
         locked_grid= generate_grid(sudoku_grid,Math.floor(Math.random()*(55-46+1))+46);
-    } else if(container.classList[0] === "hard"){
-        locked_grid= generate_grid(sudoku_grid,Math.floor(Math.random()*(81-56+1))+56);
-    } else if(container.classList[0] === "random"){
+    } else if(difficulty === "hard"){
+        if(param.get("harder") === "true"){
+            difftext.textContent="Sudoku (Harder";
+            taunt.remove();
+            let hardest = [
+                [1,0,0,0,0,7,0,9,0],
+                [0,3,0,0,2,0,0,0,8],
+                [0,0,9,6,0,0,5,0,0],
+                [0,0,5,3,0,0,9,0,0],
+                [0,1,0,0,8,0,0,0,2],
+                [6,0,0,0,0,4,0,0,0],
+                [3,0,0,0,0,0,0,1,0],
+                [0,4,0,0,0,0,0,0,7],
+                [0,0,7,0,0,0,3,0,0]
+            ]
+
+            let hsolved = [
+                [1,0,0,0,0,7,0,9,0],
+                [0,3,0,0,2,0,0,0,8],
+                [0,0,9,6,0,0,5,0,0],
+                [0,0,5,3,0,0,9,0,0],
+                [0,1,0,0,8,0,0,0,2],
+                [6,0,0,0,0,4,0,0,0],
+                [3,0,0,0,0,0,0,1,0],
+                [0,4,0,0,0,0,0,0,7],
+                [0,0,7,0,0,0,3,0,0]
+            ]
+            solve(hsolved)
+            locked_grid=hardest;
+            sudoku_grid=hsolved;
+        } else {
+            const a = document.createElement("a");
+            difftext.textContent="Sudoku (Hard";
+            taunt.innerHTML = `Are you not satisfied with this hard puzzle? <a href="?difficulty=hard&harder=true">Try a harder puzzle!</a>`
+            sudoku_grid = generate_grid_solved()
+            locked_grid= generate_grid(sudoku_grid,Math.floor(Math.random()*(81-56+1))+56);
+        }
+    } else { // Random/ fallback
+        
+        if(difficulty !== "random") {
+            
+            setTimeout(() => {alert(`You have entered an invalid difficulty "${difficulty}". \nAs fallback, the difficulty level of this game is Random.`)},800);
+        }
+        difftext.textContent="Sudoku (Random";
+        sudoku_grid = generate_grid_solved()
         locked_grid= generate_grid(sudoku_grid,Math.floor(Math.random()*(81-32+1))+32);
-    } else if(container.classList[0] === "max"){
-        locked_grid= generate_grid(sudoku_grid,81);
-    }  
+    } 
+    if(strict === "true") difftext.textContent+=' Strict)';
+    else difftext.textContent += ')';
+
+
     let play_grid = structuredClone(locked_grid);
     let element_grid = [
         [],[],[],[],[],[],[],[],[]
@@ -267,8 +319,8 @@ document.addEventListener("DOMContentLoaded", function() {
         return (locked_grid[+id[4]][+id[5]] > 0);
     }
     function check_wrong(target){
-        // return (target.textContent != sudoku_grid[target.id[4]][target.id[5]] && target.textContent != '')
-        return (!valid(play_grid,+target.id[4],+target.id[5],+target.textContent,true)&&target.textContent != '');
+        if(strict === "true") {return (target.textContent != sudoku_grid[target.id[4]][target.id[5]] && target.textContent != '')}
+        else return (!valid(play_grid,+target.id[4],+target.id[5],+target.textContent,true)&&target.textContent != '');
     }
 
     function focuscolor(target,scenario){
@@ -326,7 +378,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     function focus(cell){
-
+        if(!cell) return;
         for(let i = 0; i < 9; i++){
             for(let j = 0; j < 9; j++){
                 if(cell.textContent != '' && element_grid[i][j].textContent == cell.textContent){
@@ -342,6 +394,7 @@ document.addEventListener("DOMContentLoaded", function() {
      
     }
     function unfocus(cell){
+         if(!cell) return;
         for(let i = 0; i < 9; i++){
             for(let j = 0; j < 9; j++){
                 if(cell.textContent !== null && element_grid[i][j].textContent == cell.textContent){
@@ -420,7 +473,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     setTimeout(() => {
                         alert(`You solved this puzzle with ${fails} fails and ${hints} hints, using ${min<10?`0${min}`:min}:${sec<10?`0${sec}`:sec}!`)
                     },100);
-                    timer.textContent=`${min<10?`0${min}`:min}:${sec<10?`0${sec}`:sec} (ended)`
+                    timer.textContent=`${min<10?`0${min}`:min}:${sec<10?`0${sec}`:sec} (Ended)`
                     clearInterval(timerf);
                     game_end=true;
                 }
@@ -473,11 +526,21 @@ document.addEventListener("DOMContentLoaded", function() {
             hintbutton.disabled = true;
             const pos = hint[0];
             const exists = hints_used.some(position => position.every((value,i) => value === pos[i])) // checks if hint already used for this pos. prevents double count
+            const cell = element_grid[pos[0]][pos[1]];
+
             if(!exists) {
                 hint_count.textContent=++hints;
                 hints_used.push(pos);
+            } else {
+                play_grid[pos[0]][pos[1]] = sudoku_grid[pos[0]][pos[1]];
+                if(solved(sudoku_grid,play_grid)) play_grid[pos[0]][pos[1]] = 0;
+                else {
+                    cell.textContent = sudoku_grid[pos[0]][pos[1]]
+                    hint_count.textContent=++hints
+                }
+                
             }
-            const cell = element_grid[pos[0]][pos[1]];
+            let blink_colour = ["#ed5f0d","#ff0044"];
             let blinks = 0;
             let last_colour;
             let blinking = setInterval(() => {
@@ -521,7 +584,8 @@ document.addEventListener("DOMContentLoaded", function() {
             for(let i = 0; i < 9; i++){
                 for(let j = 0; j < 9; j++){
                     element_grid[i][j].textContent = '';
-                    element_grid[i][j].style.backgroundColor = "aliceblue"
+                    element_grid[i][j].style.backgroundColor = "aliceblue";
+                    element_grid[i][j].style.fontWeight = 'normal';
                 }
             }
         } else {
