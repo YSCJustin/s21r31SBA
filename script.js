@@ -263,7 +263,7 @@ document.addEventListener("DOMContentLoaded", function() {
         } else {
             const a = document.createElement("a");
             difftext.textContent="Sudoku (Hard";
-            taunt.innerHTML = `Are you not satisfied with this hard puzzle? <a href="?difficulty=hard&harder=true">Try a harder puzzle!</a>`
+            taunt.innerHTML = `Are you not satisfied with this hard puzzle? <a href="?difficulty=hard${strict === "true" ? "&strict=true" : ''}&harder=true">Try a harder puzzle!</a>`
             sudoku_grid = generate_grid_solved()
             locked_grid= generate_grid(sudoku_grid,Math.floor(Math.random()*(81-56+1))+56);
         }
