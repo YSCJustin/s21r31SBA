@@ -47,6 +47,9 @@ function find_empty(grid,scenario){
             for(let j = 0; j < 9; j++){
                 if(grid[i][j]===0){
                     const candidiates = fetch_candidiates(grid,i,j);
+                    if(candidiates.length === 0){
+                        return [-1,-1];
+                    }
                     if(candidiates.length < min) {
                         min = candidiates.length;
                         best = [i,j];
@@ -110,7 +113,10 @@ function unique(sudoku_grid){
     function backtrack(){
         if(cnt>=2) return;
         const empty = find_empty(grid,2);
-        if(!empty) {
+        if(empty && empty[0]==-1) {
+            return;
+        } 
+        if(!empty){
             cnt++;
             return;
         }
@@ -123,7 +129,7 @@ function unique(sudoku_grid){
         }
     }
     backtrack();
-    return (cnt<2);
+    return (cnt===1);
 }
 
 function generate_grid_solved(){
