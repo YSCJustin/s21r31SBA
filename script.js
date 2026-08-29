@@ -333,6 +333,7 @@ document.addEventListener("DOMContentLoaded", function() {
         if(scenario === 1){ // number same
              if(locked(target.id)){
                 target.style.backgroundColor = '#85f7f7'
+                target.style.color = "black";
             } else {
                 if(check_wrong(target)){
                     target.style.backgroundColor = '#f28b83'
@@ -343,6 +344,7 @@ document.addEventListener("DOMContentLoaded", function() {
         else if(scenario === 2){ // the target cell itself
              if(locked(target.id)){
                 target.style.backgroundColor = '#85d1fa'
+                target.style.color = "black";
             } else {
                 if(check_wrong(target)){
                     target.style.backgroundColor = '#f76a60'
@@ -352,6 +354,7 @@ document.addEventListener("DOMContentLoaded", function() {
         } else {
             if(locked(target.id)){
                 target.style.backgroundColor = '#bfe3f6'
+                target.style.color = "black";
             } else {
                 if(check_wrong(target)){
                     target.style.backgroundColor = '#f28b83'
@@ -376,7 +379,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 target.style.color='black'
             }
         } else {
-
+            target.style.color = "black";
             target.style.backgroundColor = '#d6e4f0';
         }
         target.style.fontWeight = 'normal';
@@ -530,7 +533,7 @@ document.addEventListener("DOMContentLoaded", function() {
         if(hint[0]){
             hintbutton.disabled = true;
             const pos = hint[0];
-            const exists = hints_used.some(position => position.every((value,i) => value === pos[i])) // checks if hint already used for this pos. prevents double count
+            const exists = hints_used.some(position => position.every((value,i) => value === pos[i]));
             const cell = element_grid[pos[0]][pos[1]];
 
             if(!exists) {
@@ -540,12 +543,13 @@ document.addEventListener("DOMContentLoaded", function() {
                 play_grid[pos[0]][pos[1]] = sudoku_grid[pos[0]][pos[1]];
                 if(solved(sudoku_grid,play_grid)) play_grid[pos[0]][pos[1]] = 0;
                 else {
-                    cell.textContent = sudoku_grid[pos[0]][pos[1]]
-                    hint_count.textContent=++hints
+                    locked_grid[pos[0]][pos[1]]=sudoku_grid[pos[0]][pos[1]];
+                    cell.textContent = sudoku_grid[pos[0]][pos[1]];
+                    hint_count.textContent=++hints;
                 }
                 
             }
-            let blink_colour = ["#ed5f0d","#ff0044"];
+
             let blinks = 0;
             let last_colour;
             let blinking = setInterval(() => {
@@ -606,6 +610,12 @@ document.addEventListener("DOMContentLoaded", function() {
                         element_grid[i][j].textContent = play_grid[i][j];
                         if(locked(element_grid[i][j].id)){
                             element_grid[i][j].style.backgroundColor = "#d6e4f0";
+                        } else if(check_wrong(element_grid[i][j])){
+                            element_grid[i][j].style.backgroundColor = '#f28b83'
+                            element_grid[i][j].style.color = '#ffffff';
+                        } else {
+                            element_grid[i][j].style.backgroundColor = "aliceblue";
+                            element_grid[i][j].style.color = "black";
                         }
                     }
                 }
